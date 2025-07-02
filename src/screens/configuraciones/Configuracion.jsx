@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -10,50 +10,11 @@ import {
   StatusBar,
   Alert,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import EncabezadoLogo from '../../components/EncabezadoLogo';
-import axiosCliente from '../../api/axiosClient';
+import { useConfiguracion } from '../../context/ConfiguracionContext';
 
 const Configuracion = () => {
-  const [config, setConfig] = useState({
-    publicidad: true,
-    notificaciones: true,
-    filtrar_por_ciudad: true,
-    ver_destacados: true,
-    usar_ubicacion: true,
-    modo_oscuro: false,
-  });
-
-  const obtenerToken = async () => {
-    return await AsyncStorage.getItem('token');
-  };
-
-  const obtenerConfiguracion = async () => {
-    try {
-      const res = await axiosCliente.get('/configuraciones');
-      setConfig(res.data);
-    } catch (error) {
-      console.error('Error al obtener configuración:', error);
-    }
-  };
-
-
-  const actualizarConfiguracion = async (clave, valor) => {
-    try {
-      const nuevaConfig = { ...config, [clave]: valor };
-      setConfig(nuevaConfig);
-
-      await axiosCliente.put('/configuraciones', nuevaConfig);
-    } catch (error) {
-      console.error('Error al actualizar configuración:', error);
-      Alert.alert('Error', 'No se pudo actualizar la configuración.');
-    }
-  };
-
-
-  useEffect(() => {
-    obtenerConfiguracion();
-  }, []);
+  const { config, actualizarConfiguracion,esOscuro } = useConfiguracion();
 
   const renderSwitch = (label, description, clave) => (
     <View style={styles.optionBlock}>
@@ -61,7 +22,14 @@ const Configuracion = () => {
         <Text style={styles.optionText}>{label}</Text>
         <Switch
           value={config[clave]}
-          onValueChange={(value) => actualizarConfiguracion(clave, value)}
+          onValueChange={async (value) => {
+            try {
+              await actualizarConfiguracion(clave, value);
+            } catch (error) {
+              console.error(`Error al cambiar ${clave}:`, error);
+              Alert.alert('Error', 'No se pudo actualizar la configuración.');
+            }
+          }}
         />
       </View>
       <Text style={styles.description}>{description}</Text>
@@ -70,7 +38,12 @@ const Configuracion = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
+      <View
+        style={[
+          styles.headerFijo,
+          esOscuro ? styles.headerFijoDark : styles.headerFijoLight,
+        ]}
+      >
         <EncabezadoLogo />
       </View>
       <ScrollView contentContainerStyle={styles.container}>
@@ -126,11 +99,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  header: {
+  headerFijo: {
+    zIndex: 10,
+    paddingVertical: 4,
+  },
+  headerFijoLight: {
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderColor: '#ddd',
-    paddingVertical: 4,
+  },
+  headerFijoDark: {
+    backgroundColor: '#111',
+    borderBottomWidth: 0,
   },
   container: {
     padding: 20,

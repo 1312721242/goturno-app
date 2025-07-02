@@ -14,13 +14,15 @@ import {
 } from "react-native";
 import axios from "../api/axiosClient";
 import EncabezadoLogo from "../components/EncabezadoLogo";
+import { usePreferencias } from "../hooks/usePreferencias";
 
 const { width } = Dimensions.get("window");
 
 const PublicHomeScreen = ({ navigation }) => {
   const [negocios, setNegocios] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
-
+  const { modo_oscuro, ver_publicidad, ver_destacados, publicidad } = usePreferencias(); // ✅ se invoca correctamente
+  console.log("ver_destacados:", ver_destacados);
   const obtenerNegocios = async () => {
     try {
       const response = await axios.get("/core/negocios", {
@@ -44,48 +46,109 @@ const PublicHomeScreen = ({ navigation }) => {
   const mejores = negocios.filter((n) => n.calificacion_promedio >= 4.7);
   const restantes = negocios.filter((n) => n.calificacion_promedio < 4.7);
 
+  const esOscuro = modo_oscuro;
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* 🧷 Encabezado Fijo */}
-      <View style={styles.headerFijo}>
+    <SafeAreaView
+      style={[
+        styles.safeArea,
+        esOscuro && { backgroundColor: "#111" }, // Fondo oscuro si aplica
+      ]}
+    >
+      {/* Encabezado */}
+      <View
+        style={[
+          styles.headerFijo,
+          esOscuro ? styles.headerFijoDark : styles.headerFijoLight,
+        ]}
+      >
         <EncabezadoLogo />
       </View>
 
-      {/* Scroll del contenido debajo del encabezado */}
+
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <Text style={styles.title}>⭐ Negocios Destacados</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.horizontalScroll}
-        >
-          {mejores.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() =>
-                navigation.navigate("DetalleNegocio", { id: item.id })
-              }
-              style={styles.carouselItem}
-            >
-              <Image
-                source={{ uri: item.imagen_portada }}
-                style={styles.carouselImage}
-              />
-              <Text style={styles.carouselText}>{item.nombre}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        {ver_destacados && (
+          <>
+            <Text style={[styles.title, esOscuro && styles.textDark]}>
+              ⭐ Destacados
+            </Text>
 
-        <Text style={styles.subtitle}>Negocios Cercanos</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.horizontalScroll}
+            >
+              {mejores.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() =>
+                    navigation.navigate("DetalleNegocio", { id: item.id })
+                  }
+                  style={styles.carouselItem}
+                >
+                  <Image
+                    source={{ uri: item.imagen_portada }}
+                    style={styles.carouselImage}
+                  />
+                  <Text style={[styles.carouselText, esOscuro && styles.textDark]}>
+                    {item.nombre}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </>
+        )}
+        {ver_publicidad && publicidad?.length > 0 && (
+          <>
+            <Text style={[styles.title, esOscuro && styles.textDark]}>
+              🛍️ Compras
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.publicidadScroll}
+            >
+              {publicidad.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => item.link && Linking.openURL(item.link)}
+                  style={styles.publicidadItem}
+                >
+                  <Image
+                    source={{ uri: item.imagen_url }}
+                    style={styles.publicidadImage}
+                  />
+                  {item.titulo && (
+                    <Text
+                      style={[
+                        styles.publicidadTitulo,
+                        esOscuro && styles.textDark,
+                      ]}
+                    >
+                      {item.titulo}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </>
+        )}
+
+
+
+        <Text style={[styles.title, esOscuro && styles.textDark]}>
+          🏪 Cerca de ti
+        </Text>
+
         {restantes.map((negocio, index) => (
           <TouchableOpacity
             key={index}
-            style={styles.card}
+            style={[styles.card, esOscuro && styles.cardDark]}
             onPress={() =>
               navigation.navigate("DetalleNegocio", { id: negocio.id })
             }
@@ -95,9 +158,13 @@ const PublicHomeScreen = ({ navigation }) => {
               style={styles.cardImage}
             />
             <View style={styles.cardContent}>
-              <Text style={styles.name}>{negocio.nombre}</Text>
-              <Text style={styles.desc}>{negocio.descripcion}</Text>
-              <Text style={styles.cat}>
+              <Text style={[styles.name, esOscuro && styles.textDark]}>
+                {negocio.nombre}
+              </Text>
+              <Text style={[styles.desc, esOscuro && styles.textLight]}>
+                {negocio.descripcion}
+              </Text>
+              <Text style={[styles.cat, esOscuro && styles.textLight]}>
                 <Text style={{ fontWeight: "bold" }}>Categoría:</Text>{" "}
                 {negocio.categoria}
               </Text>
@@ -118,12 +185,19 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   headerFijo: {
-    backgroundColor: "#fff",
     zIndex: 10,
-    borderBottomWidth: 1,
-    borderColor: "#ddd",
     paddingVertical: 4,
   },
+  headerFijoLight: {
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderColor: '#ddd',
+  },
+  headerFijoDark: {
+    backgroundColor: '#111',
+    borderBottomWidth: 0,
+  },
+
   scrollContainer: {
     paddingBottom: 20,
     paddingTop: 10,
@@ -191,4 +265,37 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     fontSize: 12,
   },
+  textDark: {
+    color: "#fff",
+  },
+  textLight: {
+    color: "#ccc",
+  },
+  cardDark: {
+    backgroundColor: "#222",
+    borderColor: "#444",
+    borderWidth: 1,
+    elevation: 0,
+    shadowColor: "transparent",
+  },
+  publicidadScroll: {
+    paddingHorizontal: 10,
+    marginBottom: 20,
+  },
+  publicidadItem: {
+    marginRight: 12,
+    alignItems: "center",
+    width: 280,
+  },
+  publicidadImage: {
+    width: 280,
+    height: 120,
+    borderRadius: 10,
+  },
+  publicidadTitulo: {
+    marginTop: 5,
+    fontSize: 14,
+    textAlign: "center",
+  },
+
 });

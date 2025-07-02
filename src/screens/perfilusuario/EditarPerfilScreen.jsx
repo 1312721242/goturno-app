@@ -9,15 +9,18 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  ScrollView
+  ScrollView,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as SecureStore from 'expo-secure-store';
 import axios from '../../api/axiosClient';
 import MapaSelector from '../../components/MapaSelector';
+import { useConfiguracion } from '../../context/ConfiguracionContext'; // ✅ Importa el contexto
 
 const EditarPerfil = ({ route, navigation }) => {
   const { usuario } = route.params;
+  const { config } = useConfiguracion(); // ✅ Usa el contexto
+  const esOscuro = config?.modo_oscuro;
 
   const [nombre, setNombre] = useState(usuario.nombre || '');
   const [telefono, setTelefono] = useState(usuario.telefono || '');
@@ -36,8 +39,8 @@ const EditarPerfil = ({ route, navigation }) => {
       base64: true,
     });
 
-    if (!resultado.cancelled) {
-      setFoto(`data:image/jpeg;base64,${resultado.base64}`);
+    if (!resultado.canceled) {
+      setFoto(`data:image/jpeg;base64,${resultado.assets[0].base64}`);
     }
   };
 
@@ -81,10 +84,10 @@ const EditarPerfil = ({ route, navigation }) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={styles.keyboardAvoiding}
+      style={[styles.keyboardAvoiding, esOscuro && styles.bgDark]}
     >
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Editar Perfil</Text>
+      <ScrollView contentContainerStyle={[styles.container, esOscuro && styles.bgDark]}>
+        <Text style={[styles.title, esOscuro && styles.textLight]}>Editar Perfil</Text>
 
         <TouchableOpacity onPress={seleccionarImagen}>
           <Image
@@ -93,11 +96,42 @@ const EditarPerfil = ({ route, navigation }) => {
           />
         </TouchableOpacity>
 
-        <TextInput style={styles.input} placeholder="Nombre" value={nombre} onChangeText={setNombre} />
-        <TextInput style={styles.input} placeholder="Teléfono" value={telefono} onChangeText={setTelefono} keyboardType="phone-pad" />
-        <TextInput style={styles.input} placeholder="Ciudad" value={ciudad} onChangeText={setCiudad} />
-        <TextInput style={styles.input} placeholder="Dirección" value={direccion} onChangeText={setDireccion} />
-        <TextInput style={styles.input} placeholder="Referencia" value={referencia} onChangeText={setReferencia} />
+        <TextInput
+          style={[styles.input, esOscuro && styles.inputDark]}
+          placeholder="Nombre"
+          placeholderTextColor={esOscuro ? '#ccc' : '#888'}
+          value={nombre}
+          onChangeText={setNombre}
+        />
+        <TextInput
+          style={[styles.input, esOscuro && styles.inputDark]}
+          placeholder="Teléfono"
+          placeholderTextColor={esOscuro ? '#ccc' : '#888'}
+          value={telefono}
+          onChangeText={setTelefono}
+          keyboardType="phone-pad"
+        />
+        <TextInput
+          style={[styles.input, esOscuro && styles.inputDark]}
+          placeholder="Ciudad"
+          placeholderTextColor={esOscuro ? '#ccc' : '#888'}
+          value={ciudad}
+          onChangeText={setCiudad}
+        />
+        <TextInput
+          style={[styles.input, esOscuro && styles.inputDark]}
+          placeholder="Dirección"
+          placeholderTextColor={esOscuro ? '#ccc' : '#888'}
+          value={direccion}
+          onChangeText={setDireccion}
+        />
+        <TextInput
+          style={[styles.input, esOscuro && styles.inputDark]}
+          placeholder="Referencia"
+          placeholderTextColor={esOscuro ? '#ccc' : '#888'}
+          value={referencia}
+          onChangeText={setReferencia}
+        />
 
         <MapaSelector
           latitud={latitud}
@@ -125,12 +159,14 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: 'center',
     flexGrow: 1,
+    backgroundColor: '#fff',
   },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 20,
     alignSelf: 'center',
+    color: '#333',
   },
   input: {
     borderWidth: 1,
@@ -138,6 +174,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     padding: 10,
     borderRadius: 10,
+    backgroundColor: '#fff',
+    color: '#000',
+  },
+  inputDark: {
+    backgroundColor: '#222',
+    borderColor: '#555',
+    color: '#fff',
   },
   avatar: {
     width: 120,
@@ -156,5 +199,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#fff',
     fontWeight: 'bold',
+  },
+  textLight: {
+    color: '#fff',
+  },
+  bgDark: {
+    backgroundColor: '#111',
   },
 });

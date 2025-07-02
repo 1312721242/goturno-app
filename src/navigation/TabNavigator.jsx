@@ -1,8 +1,9 @@
-// src/navigation/TabNavigator.jsx
 import React, { useEffect, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
+import { usePreferencias } from '../hooks/usePreferencias';
+
 import PublicHomeScreen from '../screens/PublicHomeScreen';
 import PerfilScreen from '../screens/perfilusuario/PerfilScreen';
 import ConfiguracionScreen from '../screens/configuraciones/Configuracion';
@@ -13,6 +14,7 @@ const Tab = createBottomTabNavigator();
 
 export default function TabNavigator() {
   const [token, setToken] = useState(null);
+  const { modo_oscuro } = usePreferencias();
 
   useEffect(() => {
     const cargarToken = async () => {
@@ -26,7 +28,12 @@ export default function TabNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#2e86de',
+        tabBarActiveTintColor: modo_oscuro ? '#00acee' : '#2e86de',
+        tabBarInactiveTintColor: modo_oscuro ? '#aaa' : '#777',
+        tabBarStyle: {
+          backgroundColor: modo_oscuro ? '#111' : '#fff',
+          borderTopColor: modo_oscuro ? '#333' : '#ccc',
+        },
         tabBarIcon: ({ color, size }) => {
           let iconName;
           if (route.name === 'Inicio') iconName = 'home-outline';

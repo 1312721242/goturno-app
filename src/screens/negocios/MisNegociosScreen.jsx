@@ -13,12 +13,15 @@ import * as SecureStore from "expo-secure-store";
 import EncabezadoLogo from "../../components/EncabezadoLogo";
 import { useNavigation } from "@react-navigation/native";
 import { AntDesign } from '@expo/vector-icons';
+import { useConfiguracion } from "../../context/ConfiguracionContext"; // 💡 Importa el contexto
 
 const MisNegociosScreen = () => {
   const [negocios, setNegocios] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [token, setToken] = useState(null);
   const navigation = useNavigation();
+  const { config } = useConfiguracion(); // 💡 Obtiene la configuración global
+  const esOscuro = config?.modo_oscuro;
 
   useEffect(() => {
     const cargarToken = async () => {
@@ -51,11 +54,11 @@ const MisNegociosScreen = () => {
 
   const renderNegocio = ({ item }) => (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, esOscuro && styles.cardDark]}
       onPress={() =>
         navigation.navigate("DetalleNegocio", {
           negocio: item,
-          editable: true, // ⚠️ Indicamos que viene desde MisNegocios
+          editable: true,
         })
       }
     >
@@ -68,9 +71,13 @@ const MisNegociosScreen = () => {
         style={styles.imagen}
       />
       <View style={styles.info}>
-        <Text style={styles.nombre}>{item.nombre}</Text>
-        <Text style={styles.descripcion}>{item.descripcion}</Text>
-        <Text style={styles.categoria}>
+        <Text style={[styles.nombre, esOscuro && styles.textLight]}>
+          {item.nombre}
+        </Text>
+        <Text style={[styles.descripcion, esOscuro && styles.textLight]}>
+          {item.descripcion}
+        </Text>
+        <Text style={[styles.categoria, esOscuro && styles.textLight]}>
           Categoría: {item.categoria || "Sin categoría"}
         </Text>
       </View>
@@ -79,9 +86,9 @@ const MisNegociosScreen = () => {
 
   if (!token) {
     return (
-      <ScrollView contentContainerStyle={styles.center}>
+      <ScrollView contentContainerStyle={[styles.center, esOscuro && styles.bgDark]}>
         <EncabezadoLogo />
-        <Text style={styles.loginText}>
+        <Text style={[styles.loginText, esOscuro && styles.textLight]}>
           Debes iniciar sesión para ver tus negocios.
         </Text>
         <TouchableOpacity
@@ -96,20 +103,21 @@ const MisNegociosScreen = () => {
 
   if (cargando) {
     return (
-      <ScrollView contentContainerStyle={styles.center}>
+      <ScrollView contentContainerStyle={[styles.center, esOscuro && styles.bgDark]}>
         <EncabezadoLogo />
-        <Text>Cargando tus negocios...</Text>
+        <Text style={[styles.textLight, { marginTop: 20 }]}>
+          Cargando tus negocios...
+        </Text>
       </ScrollView>
     );
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={[{ flex: 1 }, esOscuro && styles.bgDark]}>
       <View style={{ marginTop: 30 }}>
         <EncabezadoLogo />
       </View>
 
-      {/* Botón flotante + */}
       <TouchableOpacity
         style={styles.botonAgregar}
         onPress={() => navigation.navigate("CrearNegocio")}
@@ -118,8 +126,10 @@ const MisNegociosScreen = () => {
       </TouchableOpacity>
 
       {negocios.length === 0 ? (
-        <View style={styles.center}>
-          <Text>No tienes negocios registrados aún.</Text>
+        <View style={[styles.center, esOscuro && styles.bgDark]}>
+          <Text style={[styles.textLight, { marginTop: 20 }]}>
+            No tienes negocios registrados aún.
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -155,6 +165,11 @@ const styles = StyleSheet.create({
     borderColor: "#eee",
     borderWidth: 1,
   },
+  cardDark: {
+    backgroundColor: "#222",
+    borderColor: "#444",
+    elevation: 0,
+  },
   imagen: {
     width: 100,
     height: 100,
@@ -181,6 +196,12 @@ const styles = StyleSheet.create({
     color: "#999",
     marginTop: 6,
     fontStyle: "italic",
+  },
+  textLight: {
+    color: "#eee",
+  },
+  bgDark: {
+    backgroundColor: "#111",
   },
   loginText: {
     fontSize: 16,
