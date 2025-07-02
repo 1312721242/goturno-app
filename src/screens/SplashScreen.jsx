@@ -16,7 +16,7 @@ export default function SplashScreen() {
   return (
     <View style={styles.container}>
       <Image
-        source={require("../../assets/splash/GoTurnoMovilLogo.gif")}
+        source={require("../../assets/splash/GoTurnoMovilLogoVertical.gif")}
         style={styles.logo}
         resizeMode="contain"
       />
