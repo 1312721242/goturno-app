@@ -13,7 +13,7 @@ import {
   RefreshControl,
 } from "react-native";
 import axios from "../api/axiosClient";
-// import EncabezadoLogo from '../../components/EncabezadoLogo'; // Reutilizable
+import EncabezadoLogo from "../components/EncabezadoLogo";
 
 const { width } = Dimensions.get("window");
 
@@ -46,8 +46,14 @@ const PublicHomeScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* 🧷 Encabezado Fijo */}
+      <View style={styles.headerFijo}>
+        <EncabezadoLogo />
+      </View>
+
+      {/* Scroll del contenido debajo del encabezado */}
       <ScrollView
-        style={styles.container}
+        contentContainerStyle={styles.scrollContainer}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -111,17 +117,52 @@ const styles = StyleSheet.create({
     backgroundColor: "#f6f6f6",
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
-  container: { flex: 1, backgroundColor: "#f6f6f6" },
-  title: { fontSize: 22, fontWeight: "bold", padding: 15 },
-  subtitle: { fontSize: 18, fontWeight: "bold", padding: 15, marginTop: 20 },
-  horizontalScroll: { paddingHorizontal: 10, paddingBottom: 10 },
-  carouselItem: { marginRight: 15, alignItems: "center", width: 240 },
-  carouselImage: { width: 240, height: 140, borderRadius: 10 },
-  carouselText: { textAlign: "center", fontWeight: "600", marginTop: 5 },
+  headerFijo: {
+    backgroundColor: "#fff",
+    zIndex: 10,
+    borderBottomWidth: 1,
+    borderColor: "#ddd",
+    paddingVertical: 4,
+  },
+  scrollContainer: {
+    paddingBottom: 20,
+    paddingTop: 10,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    padding: 15,
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    padding: 15,
+    marginTop: 20,
+  },
+  horizontalScroll: {
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+  },
+  carouselItem: {
+    marginRight: 15,
+    alignItems: "center",
+    width: 240,
+  },
+  carouselImage: {
+    width: 240,
+    height: 140,
+    borderRadius: 10,
+  },
+  carouselText: {
+    textAlign: "center",
+    fontWeight: "600",
+    marginTop: 5,
+  },
   card: {
     flexDirection: "row",
     backgroundColor: "#fff",
-    margin: 10,
+    marginHorizontal: 10,
+    marginVertical: 8,
     borderRadius: 10,
     elevation: 3,
     shadowColor: "#000",
@@ -134,8 +175,20 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 10,
     borderBottomLeftRadius: 10,
   },
-  cardContent: { flex: 1, padding: 10, justifyContent: "center" },
-  name: { fontSize: 16, fontWeight: "bold" },
-  desc: { color: "#555" },
-  cat: { fontStyle: "italic", fontSize: 12 },
+  cardContent: {
+    flex: 1,
+    padding: 10,
+    justifyContent: "center",
+  },
+  name: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  desc: {
+    color: "#555",
+  },
+  cat: {
+    fontStyle: "italic",
+    fontSize: 12,
+  },
 });
